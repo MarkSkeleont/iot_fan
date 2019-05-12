@@ -1,0 +1,348 @@
+[
+    {
+        "id": "21a25a4d.515c86",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b7e198fc.06f808",
+        "type": "debug",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 530,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "45f49299.15435c",
+        "type": "influxdb out",
+        "z": "21a25a4d.515c86",
+        "influxdb": "292b69dd.540e66",
+        "name": "",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "x": 880,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "ebcc72f7.83562",
+        "type": "mqtt in",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "topic": "data",
+        "qos": "2",
+        "broker": "e000dc24.b5f14",
+        "x": 200,
+        "y": 360,
+        "wires": [
+            [
+                "b5e9cb37.136218"
+            ]
+        ]
+    },
+    {
+        "id": "b5e9cb37.136218",
+        "type": "json",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 330,
+        "y": 360,
+        "wires": [
+            [
+                "b7e198fc.06f808",
+                "ca9a3e1b.9512e8",
+                "a436a0a8.6487a8"
+            ]
+        ]
+    },
+    {
+        "id": "ca9a3e1b.9512e8",
+        "type": "function",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "func": "\nmsg.measurement = msg.payload.sensorID;\nmsg.payload = [{\n    vaule: msg.payload.value,\n},\n{\n    macAddresse: msg.payload.macAddresse,\n    unit:        msg.payload.unit\n}];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 590,
+        "y": 420,
+        "wires": [
+            [
+                "f564e909.3616d8",
+                "45f49299.15435c"
+            ]
+        ]
+    },
+    {
+        "id": "f564e909.3616d8",
+        "type": "debug",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 850,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "a685301c.9dd198",
+        "type": "influxdb in",
+        "z": "21a25a4d.515c86",
+        "influxdb": "f215ebdc.d0ff6",
+        "name": "",
+        "query": "",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "x": 720,
+        "y": 520,
+        "wires": [
+            [
+                "e5f7e472.ce0c5"
+            ]
+        ]
+    },
+    {
+        "id": "a436a0a8.6487a8",
+        "type": "function",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "func": "msg.query = \" select * from test; \";\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510,
+        "y": 480,
+        "wires": [
+            [
+                "a685301c.9dd198"
+            ]
+        ]
+    },
+    {
+        "id": "e5f7e472.ce0c5",
+        "type": "debug",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 970,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "76fc88d1.815a6",
+        "type": "mqtt out",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "topic": "fan",
+        "qos": "2",
+        "retain": "",
+        "broker": "e000dc24.b5f14",
+        "x": 610,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "3fe36777.06ee58",
+        "type": "json",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "property": "payload",
+        "action": "str",
+        "pretty": false,
+        "x": 430,
+        "y": 660,
+        "wires": [
+            [
+                "5d128724.9637e8",
+                "76fc88d1.815a6"
+            ]
+        ]
+    },
+    {
+        "id": "5d128724.9637e8",
+        "type": "debug",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 630,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "3f3ff0ad.92e478",
+        "type": "influxdb out",
+        "z": "21a25a4d.515c86",
+        "influxdb": "f215ebdc.d0ff6",
+        "name": "",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "x": 720,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "24e1a488.7a6a04",
+        "type": "inject",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 280,
+        "y": 760,
+        "wires": [
+            [
+                "492cf92b.9bd8"
+            ]
+        ]
+    },
+    {
+        "id": "492cf92b.9bd8",
+        "type": "function",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "func": "\nmsg.measurement = \"nodes\";\nmsg.payload = [{\n    vaule: \"B4:E6:2D:37:15:E1\",\n},\n{\n    location: \"roteg\",\n    room:     \"Schlafzimmer\",\n    type:     \"Aktiver Ueberstroemer\",\n    sensor:     \"CO2\"\n\n}];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 490,
+        "y": 760,
+        "wires": [
+            [
+                "3f3ff0ad.92e478"
+            ]
+        ]
+    },
+    {
+        "id": "6292fd2b.808554",
+        "type": "ui_slider",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "label": "slider",
+        "tooltip": "",
+        "group": "7beded93.e8fe5c",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "",
+        "min": "-100",
+        "max": "100",
+        "step": 1,
+        "x": 110,
+        "y": 660,
+        "wires": [
+            [
+                "2349743e.07d764"
+            ]
+        ]
+    },
+    {
+        "id": "2349743e.07d764",
+        "type": "function",
+        "z": "21a25a4d.515c86",
+        "name": "",
+        "func": "\n\nmsg.payload = {\"mac_address\":\"68:C6:3A:D5:35:D0\",\"fanSpeed\":msg.payload};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 290,
+        "y": 660,
+        "wires": [
+            [
+                "3fe36777.06ee58"
+            ]
+        ]
+    },
+    {
+        "id": "292b69dd.540e66",
+        "type": "influxdb",
+        "z": "",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "data",
+        "name": "",
+        "usetls": false,
+        "tls": ""
+    },
+    {
+        "id": "e000dc24.b5f14",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "f215ebdc.d0ff6",
+        "type": "influxdb",
+        "z": "",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "names",
+        "name": "",
+        "usetls": false,
+        "tls": ""
+    },
+    {
+        "id": "7beded93.e8fe5c",
+        "type": "ui_group",
+        "z": "",
+        "name": "Default",
+        "tab": "68c5d37a.b99b9c",
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "68c5d37a.b99b9c",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
