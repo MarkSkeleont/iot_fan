@@ -23,8 +23,8 @@ int send_interval = 10000; // time between messages in ms
 
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ defining wifi acess §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 #ifndef STASSID
-#define STASSID "Wonderworld"
-#define STAPSK  "PBd56fRJBZm9NbGga7QG"
+#define STASSID "***"
+#define STAPSK  "***"
 #endif
 
 const char* ssid     = STASSID;
@@ -35,7 +35,7 @@ int numWiFiRestarts = 0;
 
 
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ defining mqtt connection §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
-const char* mqtt_server = "10.0.2.15";
+const char* mqtt_server = "***";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
