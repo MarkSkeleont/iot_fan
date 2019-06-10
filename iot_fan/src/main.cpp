@@ -1,13 +1,12 @@
 
-
-
-
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ loading libarys §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 #include <Wire.h>
 #include <ESP8266WiFi.h>
 #include "SparkFun_SCD30_Arduino_Library.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ dummy functions §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
@@ -18,13 +17,13 @@ void callback(char* topic, byte* payload, unsigned int length);
 void reconnect();
 
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§ settings for data transmission §§§§§§§§§§§§§§§§§§§§§§§
-int send_interval = 10000; // time between messages in ms
-
+//int send_interval = 10000; // time between messages in ms
+bool bSend = false;
 
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ defining wifi acess §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 #ifndef STASSID
-#define STASSID "Raumluft"
-#define STAPSK  "Raumluft2017Raumluft"
+#define STASSID "***"
+#define STAPSK  "***"
 #endif
 
 const char* ssid     = STASSID;
@@ -44,6 +43,21 @@ char msg[100];
 int value = 0;
 
 int numMQTTRestarts = 0;
+
+//§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ defining DS18B20 Connection §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+// Data wire is plugged into port 2 on the Arduino
+#define ONE_WIRE_BUS D4
+#define TEMPERATURE_PRECISION 9
+
+// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
+OneWire oneWire(ONE_WIRE_BUS);
+
+// Pass our oneWire reference to Dallas Temperature.
+DallasTemperature sensors(&oneWire);
+
+// arrays to hold device addresses
+DeviceAddress tempSensor1, tempSensor2;
+
 
 //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ defining air quality §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 SCD30 airSensor;
@@ -67,6 +81,11 @@ void setup()
   //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ MQTT initalisation §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+
+//§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ TemperaturSensor Initialisierung §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+    // Start up the library
+    sensors.begin();
 
   //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ CO2-Sernsor initalisation §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 
@@ -94,12 +113,13 @@ void loop()
   }
   client.loop();
 
-  long now = millis();
+  /*long now = millis();
   if (now - lastMsg > send_interval) {
     lastMsg = now;
-
+*/
+  if(bSend){
     getData();
-
+    bSend!=bSend;
   }
 }
 
@@ -107,16 +127,21 @@ void loop()
 
 void getData() {
 
+  //Abrufen der Daten des CO2-Sensors
   if (airSensor.dataAvailable())
   {
 
     sndData("co2", "ppm", airSensor.getCO2()); // Abrufen der CO2 Konzentration und übergabe an die senden Funktion
 
-    sndData("temp", "°C", round(airSensor.getTemperature() * 10) / 10); // Abrufen der Temperatur und übergabe an die senden Funktion
+    sndData("airTemp", "°C", round(airSensor.getTemperature() * 10) / 10); // Abrufen der Temperatur und übergabe an die senden Funktion
 
     sndData("relHum", "%", round(airSensor.getHumidity() * 10) / 10); // Abrufen der relativen Luftfeuchte und übergabe an die senden Funktion
 
   }
+
+  //Abruf der Adressen und der Temperaturen der externen DS18B20 Sensoren. Anschließendes Aufrufen der Sendenfunktion.
+  if (sensors.getAddress(tempSensor1, 0)) sndData("extTemp1", "°C", sensors.getTempC(tempSensor1));
+  if (sensors.getAddress(tempSensor2, 1)) sndData("extTemp2", "°C", sensors.getTempC(tempSensor2));
 
   // Systemdaten ermitteln und senden
   sndData("upTime", "sec", millis() / 1000); // Abrufen der Zeit seit dem letzen Reset und übergabe an die Sendenfunktion
@@ -190,20 +215,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Deserialize the JSON document
   deserializeJson(doc, json);
 
-  String recivingMac = doc["mac_address"];
-  int fanSpeed = doc["fanSpeed"];
-  Serial.println(recivingMac);
-  Serial.println(fanSpeed);
-  if (recivingMac == mac_address){
-  int pwm = map(fanSpeed, -100, 100, 0, 1023); // Verteilt den PWM Wert über den Messbereich des Potis
-  analogWrite(fanPin, pwm );
-  Serial.println(pwm);
-
+  if (topic == "Triggerfinger"){
+    bSend = true;
   }
 
+  if (topic == "fan"){
+    String recivingMac = doc["mac_address"];
+    int fanSpeed = doc["fanSpeed"];
+    Serial.println(recivingMac);
+    Serial.println(fanSpeed);
+    if (recivingMac == mac_address){
+      int pwm = map(fanSpeed, -100, 100, 0, 1023); // Verteilt den PWM Wert über den Messbereich des Potis
+      analogWrite(fanPin, pwm );
+      Serial.println(pwm);
+    }
 
-
-
+  }
 
 }
 
